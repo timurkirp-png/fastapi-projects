@@ -1,13 +1,16 @@
-from enum import Enum
-
 from pydantic import BaseModel
 
 
-class TaskStatus(str, Enum):
-    COMPLETE = "completed"
-    NOT_COMPLETE = "not completed"
-
-class Title(BaseModel):
-    id: int
+class Task_shemas(BaseModel):
+    id: str
     title: str
-    status: TaskStatus = TaskStatus.NOT_COMPLETE
+    completed: bool
+
+
+class Task_create_shemas(BaseModel):
+    title: str
+
+class Category_shemas(BaseModel):
+    id: str
+    Favorite_book: str 
+    reading: bool
