@@ -13,3 +13,9 @@ app.add_middleware(
     )
 
 app.include_router(handler_router, prefix="", tags=["title"])
+
+
+#git add .
+#git commit -m "Что я сделал"
+#git push
+

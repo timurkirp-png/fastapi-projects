@@ -2,11 +2,16 @@ from uuid import uuid4
 
 from fastapi import APIRouter
 
-from app.schema import Category_shemas, Task_create_shemas, Task_shemas
+from app.schema import (
+    Book_shemas,
+    Favorite_book_schema,
+    Task_create_shemas,
+    Task_shemas,
+)
 
 router = APIRouter()
 
-book: list[Category_shemas] = []
+book: list[Favorite_book_schema] = []
 
 tasks: list[Task_shemas] = []
 
@@ -21,13 +26,13 @@ def create_tasks(payload: Task_create_shemas) -> Task_shemas:
     tasks.append(new_tasks)
     return new_tasks
 
-@router.post("/categories")
-def create_category(payload: Task_create_shemas) -> Category_shemas:
-    new_category = Category_shemas(id=str(uuid4()), Favorite_book=payload.title, reading=False)
+@router.post("/book")
+def create_category(payload: Book_shemas) -> Favorite_book_schema:
+    new_category = Favorite_book_schema(Favorite_book=payload.book)
     book.append(new_category)
     return new_category
 
-@router.get("/categories")
-def read_category() -> list[Category_shemas]:
+@router.get("/book")
+def read_category()-> list[Favorite_book_schema]:
     return book
 

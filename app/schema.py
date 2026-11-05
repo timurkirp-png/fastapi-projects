@@ -10,7 +10,10 @@ class Task_shemas(BaseModel):
 class Task_create_shemas(BaseModel):
     title: str
 
-class Category_shemas(BaseModel):
-    id: str
-    Favorite_book: str 
-    reading: bool
+class Book_shemas(BaseModel):
+    book: str 
+
+
+class Favorite_book_schema(BaseModel):
+    Favorite_book: str
+
