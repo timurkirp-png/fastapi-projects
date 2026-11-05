@@ -1,19 +1,28 @@
 from pydantic import BaseModel
 
 
-class Task_shemas(BaseModel):
+class Task_schemas(BaseModel):
     id: str
     title: str
     completed: bool
 
 
-class Task_create_shemas(BaseModel):
+class Task_create_schemas(BaseModel):
     title: str
 
-class Book_shemas(BaseModel):
-    book: str 
+class Update_schemas(BaseModel):
+    title: str | None = None
+    completed: bool | None = None
 
 
-class Favorite_book_schema(BaseModel):
-    Favorite_book: str
+class Category(BaseModel):
+    id: str
+    name: str
+
+class Create_Category(BaseModel):
+    name: str 
+
+class Update_Category(BaseModel):
+    name: str | None = None
+    detail: str | None = "Category not found"
 
