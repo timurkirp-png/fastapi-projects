@@ -24,5 +24,4 @@ class Create_Category(BaseModel):
 
 class Update_Category(BaseModel):
     name: str | None = None
-    detail: str | None = "Category not found"
 

@@ -1,6 +1,9 @@
+from typing import Annotated
 from uuid import uuid4
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 from app.schema import (
     Category,
@@ -10,63 +13,82 @@ from app.schema import (
     Update_Category,
     Update_schemas,
 )
+from database import CategoryORM, TaskORM, category_to_model, get_db, task_to_model
 
 router = APIRouter()
-
-categories: list[Category] = []
-
-tasks: list[Task_schemas] = []
+# 
+# categories: list[Category] = []
+# 
+# tasks: list[Task_schemas] = []
 
 @router.get("/tasks")
-def read_tasks() -> list[Task_schemas]:
-    return tasks
+def read_tasks(db: Annotated[Session, Depends(get_db)]) -> list[Task_schemas]:
+    tasks_from_db = db.scalars(select(TaskORM)).all()
+    return [task_to_model(task) for task in tasks_from_db]
 
 @router.post("/tasks", status_code=status.HTTP_201_CREATED)
-def create_tasks(payload: Task_create_schemas) -> Task_schemas:
-    new_tasks = Task_schemas(id=str(uuid4()), title=payload.title, completed=False)
-    tasks.append(new_tasks)
-    return new_tasks
+def create_tasks(payload: Task_create_schemas, db: Annotated[Session, Depends(get_db)]) -> Task_schemas:
+    new_tasks = TaskORM(title=payload.title, completed=False)
+    db.add(new_tasks)
+    db.commit()
+    return task_to_model(new_tasks)
+
 
 @router.patch("/tasks/{task_id}")
-def update_task(task_id: str, payload: Update_schemas):
-    for task in tasks:
-        if task.id == task_id:
-            if payload.title is not None:
-                task.title = payload.title
-            if payload.completed is not None:
-                task.completed = payload.completed
-            return task
+def update_task(task_id: str, payload: Update_schemas, db: Annotated[Session, Depends(get_db)]) -> Task_schemas:
+    tasks_for_update = db.get(TaskORM, task_id)
+    if tasks_for_update is None:
+        raise HTTPException(status_code=404, detail="title is None")
+
+    if payload.title is not None:
+        tasks_for_update.title = payload.title
+    if payload.completed is not None:
+        tasks_for_update.completed = payload.completed
+    
+    db.commit()
+    return task_to_model(tasks_for_update)
+    
 
 
 @router.delete("/tasks/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_task(task_id):
-    for task in tasks:
-        if task.id == task_id:
-            tasks.remove(task)
+def delete_task(task_id, db: Annotated[Session, Depends(get_db)]):
+    tasks_for_update = db.get(TaskORM, task_id)
+    db.delete(tasks_for_update)
+    db.commit()
 
 
 @router.get("/categories")
-def get_category() -> list[Category]:
-    return categories
+def get_category(db: Annotated[Session, Depends(get_db)]) -> list[Category]:
+    categories_from_db = db.scalars(select(CategoryORM)).all()
+    return [category_to_model(category) for category in categories_from_db]
 
 
 @router.post("/categories", status_code=status.HTTP_201_CREATED)
-def create_category(payload: Create_Category) -> Category:
-    new_category = Category(id=str(uuid4()), name=payload.name)
-    categories.append(new_category)
-    return new_category
+def create_category(payload: Create_Category,db: Annotated[Session, Depends(get_db)]) -> Category:
+    new_category = CategoryORM(name=payload.name)
+    db.add(new_category)
+    db.commit()
+    return category_to_model(new_category)
+
 
 @router.patch("/categories/{category_id}")
-def update_category(category_id: str, payload: Update_Category):
-    for category in categories:
-        if category.id == category_id and payload.name is not None:
-            category.name = payload.name
-        return category
-    raise HTTPException(status_code=404, detail="Category not found")
+def update_category(category_id: str, payload: Update_Category, db: Annotated[Session, Depends(get_db)]):
+    category_for_update = db.get(CategoryORM, category_id)
+    if category_for_update is None:
+        raise HTTPException(status_code=404, detail="title is None")
+
+    if payload.name is not None:
+        category_for_update.name = payload.name
+    
+    db.commit()
+    return category_to_model(category_for_update)
+
 
 @router.delete("/categories/{category_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_category(category_id):
-    for category in categories:
-        if category.id == category_id:
-            categories.remove(category)
-    raise HTTPException(status_code=404, detail="Category not found")
+def delete_category(category_id, db: Annotated[Session, Depends(get_db)]):
+    category_for_update = db.get(CategoryORM, category_id)
+    if category_for_update is None:
+        raise HTTPException(status_code=404, detail="title is None")
+    db.delete(category_for_update)
+    db.commit()
+
