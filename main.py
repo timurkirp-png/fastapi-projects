@@ -2,7 +2,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.handler import router as handler_router
+from app.api.v1.categories import router as categories_router
+from app.api.v1.tasks import router as tasks_router
 from lifespan import lifespan
 
 app = FastAPI(lifespan=lifespan)
@@ -13,7 +14,10 @@ app.add_middleware(
     allow_methods=["*"], 
     )
 
-app.include_router(handler_router, prefix="", tags=["title"])
+app.include_router(categories_router, prefix="/app/api/v1", tags=['category'])
+
+app.include_router(tasks_router, prefix="/app/api/v1", tags=['tasks'])
+
 
 
 #git add .

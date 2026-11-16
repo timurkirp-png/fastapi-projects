@@ -1,0 +1,12 @@
+# Created by venv; see https://docs.python.org/3/library/venv.html
+# Скрываем секреты
+.env
+*.env
+
+# Скрываем виртуальное окружение
+venv/
+*.venv/
+
+# Скрываем кэш Python
+__pycache__/
+*.pyc
