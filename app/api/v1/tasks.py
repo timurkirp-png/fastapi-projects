@@ -1,9 +1,8 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, status
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, Depends, HTTPException, status
 
-from app.DB.session import get_db
+from app.api.dependencies import get_tasks_service
 from app.schemas.schema import (
     Task_create_schemas,
     Task_schemas,
@@ -14,17 +13,23 @@ from app.service import tasks as tasks_service
 router = APIRouter()
 
 @router.get("/tasks")
-def read_tasks(db: Annotated[Session, Depends(get_db)]) -> list[Task_schemas]:
-    return tasks_service.read_tasks(db)
+def read_tasks(task_service: Annotated[tasks_service.TaskService, Depends(get_tasks_service)]) -> list[Task_schemas]:
+    return task_service.list_tasks()
 
 @router.post("/tasks", status_code=status.HTTP_201_CREATED)
-def create_tasks(payload: Task_create_schemas, db: Annotated[Session, Depends(get_db)]) -> Task_schemas:
-    return tasks_service.create_tasks(payload, db)
+def create_tasks(payload: Task_create_schemas, task_service: Annotated[tasks_service.TaskService, Depends(get_tasks_service)]) -> Task_schemas:
+    return task_service.create_tasks(task_create=payload)
 
 @router.patch("/tasks/{task_id}")
-def update_task(task_id: str, payload: Task_Update_schemas, db: Annotated[Session, Depends(get_db)]) -> Task_schemas:
-    return tasks_service.update_task(task_id, payload, db)
+def update_task(task_id: str, payload: Task_Update_schemas, task_service: Annotated[tasks_service.TaskService, Depends(get_tasks_service)]) -> Task_schemas:
+    try:
+        return task_service.update_tasks(task_id=task_id, task_update=payload)
+    except tasks_service.TaskNotFound:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
 @router.delete("/tasks/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_task(task_id, db: Annotated[Session, Depends(get_db)]):
-    return tasks_service.delete_task(task_id, db)
+def delete_task(task_id, task_service: Annotated[tasks_service.TaskService, Depends(get_tasks_service)]):
+    try:
+        return task_service.delete_tasks(task_id=task_id)
+    except tasks_service.TaskNotFound:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)

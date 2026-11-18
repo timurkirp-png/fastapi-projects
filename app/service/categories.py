@@ -1,12 +1,6 @@
-from typing import Annotated
-
-from fastapi import Depends, HTTPException
-from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.DB.session import get_db
-from app.models.categories import CategoryORM
-from app.repository.categories import category_to_model
+from app.repository.categories import CategoryRepository
 from app.schemas.schema import (
     Category,
     Create_Category,
@@ -14,36 +8,41 @@ from app.schemas.schema import (
 )
 
 
-def get_categories(db: Annotated[Session, Depends(get_db)]) -> list[Category]:
-    categories_from_db = db.scalars(select(CategoryORM)).all()
-    return [category_to_model(category) for category in categories_from_db]
+class CategoryNotFound(Exception):
+    """Задача не неайдена в БД"""
+
+class CategoryService:
+    def __init__(self, db: Session) -> None:
+        self.db = db
+        self.category_repository = CategoryRepository(db)
 
 
-def create_category(payload: Create_Category,db: Annotated[Session, Depends(get_db)]) -> Category:
-    new_category = CategoryORM(name=payload.name)
-    db.add(new_category)
-    db.commit()
-    return category_to_model(new_category)
+    def create_category(self, category_create: Create_Category) -> Category:
+        category_orm = self.category_repository.create(name=category_create.name)
+        self.db.commit()    
+        return category_orm
 
 
-
-def update_category(category_id: str, payload: Update_Category, db: Annotated[Session, Depends(get_db)]):
-    category_for_update = db.get(CategoryORM, category_id)
-    if category_for_update is None:
-        raise HTTPException(status_code=404, detail="title is None")
-
-    if payload.name is not None:
-        category_for_update.name = payload.name
-    
-    db.commit()
-    return category_to_model(category_for_update)
+    def list_category(self) -> list[Category]:
+        category_orm = self.category_repository.get_all()
+        return [Category.model_validate(category, from_attributes=True) for category in category_orm]
 
 
+    def update_category(self, category_id: str ,category_update: Update_Category) -> Category:
+        category_for_update = self.category_repository.get_by_id(category_id=category_id)
+        if not category_for_update:
+            raise CategoryNotFound(f"категория c id {category_id} не найдена")
 
-def delete_category(category_id, db: Annotated[Session, Depends(get_db)]):
-    category_for_update = db.get(CategoryORM, category_id)
-    if category_for_update is None:
-        raise HTTPException(status_code=404, detail="title is None")
-    db.delete(category_for_update)
-    db.commit()
-    return category_for_update
+        if category_update.name is not None:
+            category_for_update.name = category_update.name
+        self.db.commit()
+        return Category.model_validate(category_for_update)
+
+
+    def delete_category(self, category_id: str):
+        category_for_delete = self.category_repository.get_by_id(category_id=category_id)
+        if not category_for_delete:
+            raise CategoryNotFound(f"категория c id {category_id} не найдена")
+        self.category_repository.delete(category_for_delete)
+        self.db.commit()
+

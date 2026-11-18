@@ -8,6 +8,7 @@ engine = create_engine(settings.DATABASE_URL)
 Session_local = sessionmaker(bind=engine)
 
 def get_db():
+    # ФУНКЦИЯ ДЛЯ ИНЬЕКЦИИ СЕССИИ БД
     db = Session_local()
     try:
         yield db

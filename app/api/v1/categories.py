@@ -1,9 +1,8 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, status
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, Depends, HTTPException, status
 
-from app.DB.session import get_db
+from app.api.dependencies import get_category_service
 from app.schemas.schema import (
     Category,
     Create_Category,
@@ -17,17 +16,23 @@ from app.service import categories as categories_service
 router = APIRouter()
 
 @router.get("/categories")
-def get_category(db: Annotated[Session, Depends(get_db)]) -> list[Category]:
-    return categories_service.get_categories(db)
+def read_category(category_service: Annotated[categories_service.CategoryService, Depends(get_category_service)]) -> list[Category]:
+    return category_service.list_category()
 
 @router.post("/categories", status_code=status.HTTP_201_CREATED)
-def create_category(payload: Create_Category,db: Annotated[Session, Depends(get_db)]) -> Category:
-    return categories_service.create_category(payload, db)
+def create_category(payload: Create_Category, category_service: Annotated[categories_service.CategoryService, Depends(get_category_service)]) -> Category:
+    return category_service.create_category(category_create=payload)
 
 @router.patch("/categories/{category_id}")
-def update_category(category_id: str, payload: Update_Category, db: Annotated[Session, Depends(get_db)]):
-    return categories_service.update_category(category_id, payload, db)
+def update_task(category_id: str, payload: Update_Category, category_service: Annotated[categories_service.CategoryService, Depends(get_category_service)]) -> Category:
+    try:
+        return category_service.update_category(category_id=category_id, category_update=payload)
+    except categories_service.CategoryNotFound:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
 @router.delete("/categories/{category_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_category(category_id, db: Annotated[Session, Depends(get_db)]):
-        return categories_service.delete_category(category_id, db)
+def delete_category(category_id: str, category_service: Annotated[categories_service.CategoryService, Depends(get_category_service)]):
+    try:
+        return category_service.delete_category(category_id=category_id)
+    except categories_service.CategoryNotFound:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
