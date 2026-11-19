@@ -4,9 +4,12 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.v1.categories import router as categories_router
 from app.api.v1.tasks import router as tasks_router
-from lifespan import lifespan
 
-app = FastAPI(lifespan=lifespan)
+#from lifespan import lifespan
+
+#lifespan=lifespan
+
+app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,

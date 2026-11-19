@@ -1,9 +1,14 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from app.core.config import settings
+from app.core.config import get_setting
 
-engine = create_engine(settings.DATABASE_URL)
+setting = get_setting()
+
+if not setting.DATABASE_URL:
+    raise ValueError("DATABASE_URL не найден. Проверь файл .env в корне проекта.")
+
+engine = create_engine(setting.DATABASE_URL)
 
 Session_local = sessionmaker(bind=engine)
 

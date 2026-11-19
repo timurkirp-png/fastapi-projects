@@ -11,4 +11,5 @@ class Settings(BaseSettings):
         extra="ignore"
     )
 
-settings = Settings()
+def get_setting():
+    return Settings()
