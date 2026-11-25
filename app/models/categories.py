@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Mapped
 
+from app.api.dependencies import get_category_service
 from app.models.models_base import Base
 from app.schemas.schema import Category
 
