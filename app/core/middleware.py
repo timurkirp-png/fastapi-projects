@@ -5,9 +5,9 @@ from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.v1.router import api_router
+from app.core import metrics
 from app.core.config import get_setting
 from app.core.logging import configure_logging
-from app.core import metrics
 
 configure_logging()
 
@@ -27,10 +27,11 @@ app.add_middleware(
 )
 
 
-
-
 @app.middleware("http")
-async def log_requests(request: Request, call_next,) -> Response:
+async def log_requests(
+    request: Request,
+    call_next,
+) -> Response:
     started_at = perf_counter()
     try:
         response: Response = await call_next(request)
@@ -52,10 +53,9 @@ async def log_requests(request: Request, call_next,) -> Response:
         response.status_code,
         duration_ms,
     )
-    
+
     metrics.request_count += 1
 
-    
     if response:
         response.headers["x-number-response"] = f"{metrics.request_count}"
 
@@ -63,4 +63,3 @@ async def log_requests(request: Request, call_next,) -> Response:
 
 
 app.include_router(api_router)
-

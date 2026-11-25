@@ -11,6 +11,7 @@ from app.schemas.schema import (
 class TaskNotFound(Exception):
     """Задача не неайдена в БД"""
 
+
 class TaskService:
     def __init__(self, db: Session) -> None:
         self.db = db
@@ -18,15 +19,18 @@ class TaskService:
 
     def create_tasks(self, task_create: Task_create_schemas) -> Task_schemas:
         task_orm = self.task_repository.create(title=task_create.title)
-        self.db.commit()    
+        self.db.commit()
         return task_orm
-
 
     def list_tasks(self) -> list[Task_schemas]:
         task_orm = self.task_repository.get_all()
-        return [Task_schemas.model_validate(task, from_attributes=True) for task in task_orm]
+        return [
+            Task_schemas.model_validate(task, from_attributes=True) for task in task_orm
+        ]
 
-    def update_tasks(self, task_id: str ,task_update: Task_Update_schemas) -> Task_schemas:
+    def update_tasks(
+        self, task_id: str, task_update: Task_Update_schemas
+    ) -> Task_schemas:
         tasks_for_update = self.task_repository.get_by_id(task_id=task_id)
         if not tasks_for_update:
             raise TaskNotFound(f"задача c id {task_id} не найдена")

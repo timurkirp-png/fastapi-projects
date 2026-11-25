@@ -15,10 +15,10 @@ class TaskRepository:
         self.db.commit()
         return task_to_model(new_task)
 
-    def get_all(self)-> list[TaskORM]:
+    def get_all(self) -> list[TaskORM]:
         return list(self.db.scalars(select(TaskORM)).all())
 
-    def get_by_id(self, task_id: str)-> TaskORM | None:
+    def get_by_id(self, task_id: str) -> TaskORM | None:
         return self.db.get(TaskORM, task_id)
 
     def delete(self, TaskORM) -> None:

@@ -7,8 +7,10 @@ from app.api.v1.tasks import router as tasks_router
 
 api_router = APIRouter(
     prefix="/api/v1",
-    dependencies=[Depends(get_category_service),
-        Depends(get_tasks_service),],  # ← применяется ко всем роутерам ниже
+    dependencies=[
+        Depends(get_category_service),
+        Depends(get_tasks_service),
+    ],  # ← применяется ко всем роутерам ниже
 )
 
 api_router.include_router(tasks_router, prefix="/tasks", tags=["tasks"])

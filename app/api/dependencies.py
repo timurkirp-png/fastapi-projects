@@ -1,4 +1,3 @@
-
 from typing import Annotated
 
 from fastapi import Depends
@@ -12,6 +11,7 @@ from app.service.tasks import TaskService
 def get_tasks_service(db: Annotated[Session, Depends(get_db)]):
     # функция для иньекции зависимости TaskService
     return TaskService(db)
+
 
 def get_category_service(db: Annotated[Session, Depends(get_db)]):
     # функция для иньекции зависимости TaskService

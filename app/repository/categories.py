@@ -15,12 +15,11 @@ class CategoryRepository:
         self.db.commit()
         return category_to_model(new_category)
 
-    def get_all(self)-> list[CategoryORM]:
+    def get_all(self) -> list[CategoryORM]:
         return list(self.db.scalars(select(CategoryORM)).all())
 
-    def get_by_id(self, category_id: str)-> CategoryORM | None:
+    def get_by_id(self, category_id: str) -> CategoryORM | None:
         return self.db.get(CategoryORM, category_id)
 
     def delete(self, CategoryORM) -> None:
         self.db.delete(CategoryORM)
-
